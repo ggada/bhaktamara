@@ -105,7 +105,7 @@ bhaktamara/
 ├── fonts/                    # Noto Serif Devanagari + OFL license
 ├── tools/                    # upscale_illustrations.py (regenerates images/)
 ├── environment.yml           # Conda dependencies
-├── Bhaktamara_Stotra.epub    # Generated e-book
+├── Bhaktamara_Stotra.epub    # Generated e-book (git-ignored; built by GitHub Actions)
 ├── CLAUDE.md                 # Developer documentation
 └── README.md                 # This file
 ```
