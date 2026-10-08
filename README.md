@@ -1,5 +1,7 @@
 # Bhaktamara Stotra EPUB Generator
 
+[![Build EPUB](https://github.com/ggada/bhaktamara/actions/workflows/build-epub.yml/badge.svg)](https://github.com/ggada/bhaktamara/actions/workflows/build-epub.yml)
+
 A Python script that generates a beautiful EPUB e-book of the **Bhaktamara Stotra**, one of the most revered hymns in Jainism, composed by Acharya Manatunga in the 6th century CE.
 
 ## About Bhaktamara Stotra
@@ -78,11 +80,19 @@ The script will:
 
 ### Direct Download
 
-If you just want to read the e-book without generating it yourself, download the pre-generated EPUB:
+If you just want to read the e-book without generating it yourself, download the EPUB built automatically from the latest `main`:
 
-**[Download Bhaktamara_Stotra.epub](Bhaktamara_Stotra.epub)**
+**[Download Bhaktamara_Stotra.epub](https://github.com/ggada/bhaktamara/releases/download/latest/Bhaktamara_Stotra.epub)**
 
 Transfer this file to your e-reader (Kindle, Kobo, etc.) or open it with any EPUB reader app.
+
+### Automated builds
+
+GitHub Actions (`.github/workflows/build-epub.yml`) builds the EPUB on every push to `main`, on pull requests, and on demand (**Actions → Build EPUB → Run workflow**). Each run:
+1. Installs the pinned dependencies from `requirements.txt` and runs `create_epub.py`
+2. Fails if any of the 48 shlokas is missing, then validates the book with EPUBCheck
+3. Uploads `Bhaktamara_Stotra.epub` as a run artifact (kept for 90 days)
+4. On `main`, also publishes it to the rolling [`latest` release](https://github.com/ggada/bhaktamara/releases/tag/latest), the download link above
 
 ## Project Structure
 
