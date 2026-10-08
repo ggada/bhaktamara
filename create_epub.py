@@ -95,6 +95,44 @@ TEXT_FIXES = {
     47: [("sanskrit", "bhlyeua", "bhiyeva")],
 }
 
+# Grammar fixes for the jainworld.com English, shown as "Commentary": shloka -> [(wrong, right)].
+# Minimal edits that keep the original wording; applied after TEXT_FIXES, then tidy_commentary().
+COMMENTARY_FIXES = {
+    1:  [("Rishabhdeva the radiance", "Rishabhdeva, the radiance"),
+         ("Mere touch of his feet absolves the beings from sins", "The mere touch of his feet absolves beings of their sins")],
+    2:  [("an humble man", "a humble man"), ("first Tirthamkara", "first Tirthankara")],
+    3:  [("O Jina! out of impudence", "O Jina, out of impudence"), ("you, who has been revered", "you, who have been revered")],
+    5:  [("forgetting its own frailty", "forgetting her own frailty")],
+    7:  [("by eulogizing you. Just as", "by eulogizing you, just as")],
+    8:  [("an ignorant like me", "an ignorant person like me"),
+         ("Indeed, when on lotus leaves, dew drops gleam like pearls presenting a pleasant sight.",
+          "Indeed, dew drops on lotus leaves gleam like pearls, presenting a pleasant sight.")],
+    9:  [("mere utterance of your name", "the mere utterance of your name")],
+    10: [("serving such a master who", "serving a master who")],
+    12: [("such out of the world magnificence other than yours", "such out-of-this-world magnificence other than yours.")],
+    13: [("Analogy of your face", "The analogy of your face"), ("as the autumn leaves.", "as the autumn leaves?")],
+    14: [("(certainly no one is capable of).", "(Certainly no one can.)")],
+    16: [("yet enlightens three realms", "yet enlightens the three realms")],
+    17: [("ever shining, it never sets", "ever shining; it never sets")],
+    18: [("fortnightly cycle, But your face", "fortnightly cycle, but your face"),
+         ("The moon light penetrates darkness only to a limited extent, your face", "Moonlight penetrates darkness only to a limited extent, but your face")],
+    19: [("darkness of the world.", "darkness of the world?"), ("thundering rain clouds.", "thundering rain clouds?")],
+    20: [("The pure, incessant and, complete knowledge that you have, can not", "The pure, incessant and complete knowledge that you have cannot")],
+    25: [("Jina ! The wise", "O Jina! The wise"), ("you are supreme of all", "you are the supreme of all")],
+    27: [("crept in multitude of other beings", "crept into a multitude of other beings"),
+         ("Elevated by the false pride", "Elevated by false pride"), ("even in dream", "even in a dream")],
+    33: [("drift of mild breeze", "drift of a mild breeze")],
+    34: [("dispels darkness of the night", "dispels the darkness of the night")],
+    37: [("eruditeness", "erudition")],
+    39: [("temples of elephant", "temples of an elephant"), ("Even such angry and roaring lion", "Even such an angry, roaring lion")],
+    40: [("stream of your name laudation", "stream of the praise of your name")],
+    44: [("with the help of your name chanting", "by chanting your name")],
+    45: [("when rubs the nectar-like dust", "when he rubs on the nectar-like dust")],
+    46: [("chain- links", "chain-links")],
+    47: [("The wise who recites", "The wise person who recites")],
+    48: [("wears it in the neck", "wears it around the neck")],
+}
+
 # ---------- XHTML shell ----------
 
 DOCTYPE = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">'
@@ -141,6 +179,9 @@ img { max-width:100%; height:auto; display:block; margin:0.4rem auto; }
 .devanagari { font-family:"Noto Serif Devanagari", serif; font-size:1.15rem; line-height:1.7;
               color:#000; text-align:center; font-style:normal; margin:0.3rem 0 0.7rem 0; }
 .illustration { margin:0.5rem auto; }
+h1.verse-number { font-size:0.9rem; font-weight:bold; letter-spacing:0.12em; text-transform:uppercase;
+                  text-align:center; margin:0 0 0.4rem 0; }
+h2.label { font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; margin:0 0 0.3rem 0; }
 /* images/ are 2x the source size; show them at about the original on-screen size so the
    illustration and the text share a page (the extra pixels keep it crisp on HiDPI screens) */
 .illustration img { width:13em; max-width:75%; height:auto; }
@@ -289,6 +330,12 @@ def load_translations(path=TRANSLATION_FILE):
         raise ValueError(f"{path} must contain verses 1-48, got {sorted(out)}")
     return out
 
+def tidy_commentary(text):
+    """Fix spacing slips common in the jainworld English: 'moon ?', 'O Jina !', ',your', 'can not'."""
+    text = re.sub(r"\s+([?!.,;:])", r"\1", text)
+    text = re.sub(r",(?=[A-Za-z])", ", ", text)
+    return text.replace("can not", "cannot")
+
 # ---------- XHTML builders ----------
 
 def xhtml_chapter(shloka_num, devanagari_lines, sanskrit_html, translation, commentary_html, illustration_name):
@@ -298,22 +345,23 @@ def xhtml_chapter(shloka_num, devanagari_lines, sanskrit_html, translation, comm
         parts.append(f'<div class="significance"><p><strong>Special significance:</strong> {sig}</p></div>')
     if illustration_name:
         parts.append(f'<div class="image-container illustration"><img src="{illustration_name}" alt="Shloka {shloka_num} illustration" /></div>')
-    parts.append('<div class="sanskrit"><h2>Sanskrit Text</h2>')
+    parts.append('<div class="sanskrit">')
     parts.append('<p class="devanagari" lang="sa" xml:lang="sa">' + "<br />".join(devanagari_lines) + '</p>')
     # Force italics via <em> to handle strict readers
     sanskrit_render = f'<em>{sanskrit_html or "Content not available"}</em>'
     parts.append(f'<p class="sanskrit-text">{sanskrit_render}</p></div>')
     text, note = translation
-    parts.append('<div class="translation"><h2>English Translation</h2>')
+    parts.append('<div class="translation">')
     parts.append(f'<p class="translation-text">{escape(text)}</p>')
     if note:
         parts.append(f'<p class="translation-note">{escape(note)}</p>')
     parts.append('</div>')
     if commentary_html:
-        parts.append('<div class="commentary"><h2>Commentary</h2>')
+        parts.append('<div class="commentary"><h2 class="label">Commentary</h2>')
         parts.append(f'<p class="translation-text">{commentary_html}</p></div>')
-    title = f"Shloka {shloka_num:02d}"
-    return HTML_HEAD.replace("{title}", title).replace("{h1}", title) + "".join(parts) + HTML_TAIL
+    title = f"Shloka {shloka_num}"
+    head = HTML_HEAD.replace("{title}", title).replace("<h1>{h1}</h1>", f'<h1 class="verse-number">{title}</h1>')
+    return head + "".join(parts) + HTML_TAIL
 
 def first_line(sanskrit_html):
     """Opening line of the transliteration, as plain text (for the contents)."""
@@ -457,6 +505,12 @@ def main():
                     english_html = text
                 else:
                     sanskrit_html = text
+            for wrong, right in COMMENTARY_FIXES.get(i, []):
+                if wrong not in english_html:
+                    print(f"  ! COMMENTARY_FIXES: '{wrong}' not found (already fixed upstream?)")
+                    continue
+                english_html = english_html.replace(wrong, right)
+            english_html = tidy_commentary(english_html)
 
             first_lines[i] = first_line(sanskrit_html)
             ill_name = illustration[0] if illustration else None

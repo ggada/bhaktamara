@@ -103,6 +103,7 @@ epubcheck Bhaktamara_Stotra.epub
 - **Adjust styling**: Edit `CSS` string
 - **Fix extraction issues**: Modify `extract_shloka_content()`
 - **Fix a typo in source text**: Add to `TEXT_FIXES` (shloka -> (field, wrong, right)); the build warns if a fix no longer matches
+- **Fix commentary grammar**: Add to `COMMENTARY_FIXES` (shloka -> (wrong, right)); `tidy_commentary()` also fixes spacing slips like 'moon ?' and 'can not'
 - **Edit a translation or note**: Edit `translation_english.txt`
 - **Correct the Devanagari**: Edit `sanskrit_devanagari.txt` (keep 4 lines per verse, ending ॥ N ॥)
 - **Add overrides**: Add to the main loop next to the shloka 6/7 overrides
