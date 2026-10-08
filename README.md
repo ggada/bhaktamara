@@ -76,11 +76,16 @@ Transfer this file to your e-reader (Kindle, Kobo, etc.) or open it with any EPU
 
 ```
 bhaktamara/
-├── create_epub.py          # Main script
-├── environment.yml         # Conda dependencies
-├── Bhaktamara_Stotra.epub  # Generated e-book
-├── CLAUDE.md              # Developer documentation
-└── README.md              # This file
+├── create_epub.py            # Main script
+├── sanskrit_devanagari.txt   # Proofread Devanagari text (48 verses)
+├── translation_english.txt   # English translation and notes
+├── images/                   # Enhanced illustrations (illustration_NN.jpg)
+├── fonts/                    # Noto Serif Devanagari + OFL license
+├── tools/                    # upscale_illustrations.py (regenerates images/)
+├── environment.yml           # Conda dependencies
+├── Bhaktamara_Stotra.epub    # Generated e-book
+├── CLAUDE.md                 # Developer documentation
+└── README.md                 # This file
 ```
 
 ## Troubleshooting
@@ -102,13 +107,17 @@ To verify the generated EPUB is valid (requires [epubcheck](https://github.com/w
 epubcheck Bhaktamara_Stotra.epub
 ```
 
-## Credits
+## Acknowledgements
 
-**Content Source**: All Sanskrit text, English translations, and images are sourced from [Jainworld.com](https://jainworld.com), a non-profit organization dedicated to promoting Jain philosophy, culture, and heritage. We are deeply grateful for their work in preserving and sharing these sacred texts.
+The same credits appear on the Acknowledgements page at the end of the book (`ACKNOWLEDGEMENTS` in `create_epub.py`).
 
-**Original Author**: Acharya Manatunga (6th century CE)
-
-**Technical Implementation**: This EPUB generation script processes and formats the content for modern e-readers while preserving the beauty and accuracy of the original material.
+- **The hymn**: composed by Ācārya Mānatuṅga; this edition follows the 48-verse Digambara recension.
+- **Transliteration, commentary and illustrations**: [JainWorld](https://jainworld.jainworld.com/bhs/), a non-profit devoted to Jain philosophy and heritage. Its English rendering appears as "Commentary", with small typographic and grammatical corrections.
+- **Devanagari text**: the edition transliterated by Ashok Sethi, with proofreading assistance from Surbhi Sethi, prepared with Prof. Yashwant K. Malaiya at [Colorado State University](https://www.cs.colostate.edu/~malaiya/bhaktamar.html). Its PostScript was read with [Tesseract OCR](https://github.com/tesseract-ocr/tesseract), corrected by hand, and cross-checked word by word against [Bhaktamar.in](https://www.bhaktamar.in/2020/04/BHAKTAMAR-STOTRA-SANSKRIT.html).
+- **English translation and notes**: prepared for this edition from the Sanskrit with the assistance of Claude (Anthropic).
+- **Illustration enhancement**: [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) by Xintao Wang, Liangbin Xie, Chao Dong and Ying Shan (ICCV Workshops 2021, BSD-3-Clause), blended at 20% so faces stay as painted.
+- **Typeface**: [Noto Serif Devanagari](https://github.com/notofonts/devanagari) by the Noto Project Authors, SIL Open Font License 1.1 (`fonts/OFL.txt`).
+- **Tools**: [EbookLib](https://github.com/aerkalov/ebooklib) for EPUB generation and [EPUBCheck](https://github.com/w3c/epubcheck) for validation.
 
 ## License
 
