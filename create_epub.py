@@ -1,7 +1,7 @@
 # build_bhaktamara_epub_epub2.py
 # -*- coding: utf-8 -*-
 """
-Bhaktamara Stotra (EPUB 2.0.1)
+Bhaktamara Stotra (EPUB 3 + NCX)
 
 This version:
 - Keeps Sanskrit text images (bhsNNt*.gif|jpg) in ORIGINAL color (no B/W),
@@ -10,7 +10,9 @@ This version:
 - Transliteration forced italic for ALL shlokas.
 - Tight line spacing; normalized <br />.
 - Shloka 6 (Sanskrit + English) and Shloka 7 (Sanskrit) overrides included.
-- EPUB 2 compliant XHTML 1.1 + NCX.
+- Typo fixes from TEXT_FIXES applied to source text.
+- Contents page + nav/NCX TOC listing each verse by its opening line.
+- EPUB 3 (ebooklib) with NCX so EPUB 2 readers still get a TOC.
 """
 
 import io
@@ -18,12 +20,13 @@ import re
 import time
 import uuid
 import traceback
+import zipfile
 from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
 from ebooklib import epub
-from PIL import Image, ImageOps
+from PIL import Image
 
 BOOK_TITLE  = "Bhaktamara Stotra"
 BOOK_AUTHOR = "Acharya Manatunga"
@@ -48,6 +51,13 @@ SHLOKA_SIGNIFICANCE = {
     36: "Relief from imprisonment or bondage.",
     44: "For the protection and well-being of family members.",
     48: "For spiritual liberation and ultimate peace.",
+}
+
+# Typos in the source pages: shloka -> [(field, wrong, right)]
+TEXT_FIXES = {
+    3:  [("english", "impossible took", "impossible task")],
+    5:  [("english", "OApostle", "O Apostle"), ("english", "widdom", "wisdom")],
+    24: [("sanskrit", "vibhumachintyq", "vibhumachintyam")],
 }
 
 # ---------- XHTML shell ----------
@@ -79,6 +89,7 @@ h2 { font-size:1.15rem; margin:0.9rem 0 0.4rem 0; }
 p  { margin:0 0 0.6rem 0; }
 a { text-decoration:none; } a:hover { text-decoration:underline; }
 ul { padding-left:1.1rem; } li { margin:0.25rem 0; }
+ol.contents { list-style:none; padding-left:0; } ol.contents li { margin:0 0 0.5rem 0; }
 div.chapter { max-width:42rem; margin:0 auto; }
 img { max-width:100%; height:auto; display:block; margin:0.4rem auto; }
 .smallnote { font-size:0.95rem; color:#000; }
@@ -262,26 +273,63 @@ def xhtml_chapter(shloka_num, sanskrit_html, english_html, illustration_name, sa
     title = f"Shloka {shloka_num:02d}"
     return HTML_HEAD.replace("{title}", title).replace("{h1}", title) + "".join(parts) + HTML_TAIL
 
-def xhtml_index():
+def first_line(sanskrit_html):
+    """Opening line of the transliteration, as plain text (for the contents)."""
+    line = re.split(r'<br\s*/?>', sanskrit_html or "", maxsplit=1)[0]
+    line = re.sub(r'<[^>]+>', '', line)
+    line = re.sub(r'\s+', ' ', line).strip()
+    return line[:1].upper() + line[1:]
+
+def xhtml_contents(first_lines):
     items = []
     for i in range(1, 49):
-        extra = SHLOKA_SIGNIFICANCE.get(i)
-        if extra:
-            items.append(f'<li><a href="shloka_{i:02d}.xhtml">Shloka {i}</a>: <span class="smallnote">{extra}</span></li>')
-        else:
-            items.append(f'<li><a href="shloka_{i:02d}.xhtml">Shloka {i}</a></li>')
-    body = '<p>Select a Shloka:</p>\n<ul>\n' + "\n".join(items) + "\n</ul>"
-    return HTML_HEAD.replace("{title}", "Index").replace("{h1}", f"{BOOK_TITLE} — Index") + body + HTML_TAIL
+        opening = first_lines.get(i)
+        if opening is None:
+            continue
+        sig = SHLOKA_SIGNIFICANCE.get(i)
+        note = f'<br /><span class="smallnote">{sig}</span>' if sig else ""
+        items.append(f'<li><a href="shloka_{i:02d}.xhtml">{i}. <em>{opening}</em></a>{note}</li>')
+    body = '<ol class="contents">\n' + "\n".join(items) + "\n</ol>"
+    return HTML_HEAD.replace("{title}", "Contents").replace("{h1}", "Contents") + body + HTML_TAIL
 
 def xhtml_title():
     body = f"<p><em>Author:</em> {BOOK_AUTHOR}</p><p>48 Sacred Verses</p>"
     return HTML_HEAD.replace("{title}", "Title").replace("{h1}", BOOK_TITLE) + body + HTML_TAIL
 
+# ---------- NCX post-processing ----------
+
+def fix_ncx(path):
+    """ebooklib omits NCX playOrder and writes dtb:depth=0; older readers need both.
+    Number navPoints in document order (same target -> same playOrder) and set the depth."""
+    with zipfile.ZipFile(path) as z:
+        entries = [(info, z.read(info.filename)) for info in z.infolist()]
+
+    def patch(ncx):
+        order = {}
+        def number(m):
+            src = m.group(3)
+            order.setdefault(src, len(order) + 1)
+            return f'{m.group(1)} playOrder="{order[src]}"{m.group(2)}{src}'
+        # A navPoint's own <content> comes right after its label, before any child navPoint
+        ncx = re.sub(r'(<navPoint\b[^>]*?)(?:\s+playOrder="\d*")?(>\s*<navLabel>.*?</navLabel>\s*<content src=")([^"]+)',
+                     number, ncx, flags=re.S)
+        level = deepest = 0
+        for tag in re.finditer(r'<(/?)navPoint\b', ncx):
+            level += -1 if tag.group(1) else 1
+            deepest = max(deepest, level)
+        return re.sub(r'(<meta content=")\d+(" name="dtb:depth"/>)', rf'\g<1>{deepest}\2', ncx)
+
+    with zipfile.ZipFile(path, "w") as z:
+        for info, data in entries:
+            if info.filename.endswith(".ncx"):
+                data = patch(data.decode("utf-8")).encode("utf-8")
+            z.writestr(info, data)
+
 # ---------- Main ----------
 
 def main():
     book = epub.EpubBook()
-    book.set_identifier(str(uuid.uuid4()))
+    book.set_identifier(str(uuid.uuid5(uuid.NAMESPACE_URL, CH_URL.format(num=1) + "#" + OUTPUT_FILE)))
     book.set_title(BOOK_TITLE)
     book.set_language("en")
     book.add_author(BOOK_AUTHOR)
@@ -291,11 +339,13 @@ def main():
 
     title_pg = epub.EpubHtml(title="Title", file_name="title.xhtml", lang="en")
     title_pg.content = xhtml_title().encode("utf-8")
+    title_pg.add_item(css_item)
     book.add_item(title_pg)
 
-    index_pg = epub.EpubHtml(title="Index", file_name="index.xhtml", lang="en")
-    index_pg.content = xhtml_index().encode("utf-8")
-    book.add_item(index_pg)
+    contents_pg = epub.EpubHtml(title="Contents", file_name="index.xhtml", lang="en")
+    contents_pg.add_item(css_item)
+    book.add_item(contents_pg)
+    first_lines = {}
 
     session = requests.Session()
     session.headers.update(HEADERS)
@@ -344,10 +394,18 @@ def main():
             elif i == 7:
                 sanskrit_html = SANSKRIT_OVERRIDE_7
 
+            for field, wrong, right in TEXT_FIXES.get(i, []):
+                if field == "english":
+                    english_html = english_html.replace(wrong, right)
+                else:
+                    sanskrit_html = sanskrit_html.replace(wrong, right)
+
+            first_lines[i] = first_line(sanskrit_html)
             ill_name = illustration[0] if illustration else None
             san_names = [nm for (nm, _b, _mt) in sanskrit_imgs]
 
-            ch = epub.EpubHtml(title=f"Shloka {i}", file_name=f"shloka_{i:02d}.xhtml", lang="en")
+            ch = epub.EpubHtml(title=f"Shloka {i}: {first_lines[i]}", file_name=f"shloka_{i:02d}.xhtml", lang="en")
+            ch.add_item(css_item)
             ch.content = xhtml_chapter(i, sanskrit_html, english_html, ill_name, san_names).encode("utf-8")
             book.add_item(ch)
             chapters.append(ch)
@@ -368,18 +426,22 @@ def main():
     if not chapters:
         raise RuntimeError("No chapters were added. Aborting.")
 
+    contents_pg.content = xhtml_contents(first_lines).encode("utf-8")
+
     book.toc = (
         epub.Link('title.xhtml', 'Title', 'title'),
-        epub.Link('index.xhtml', 'Index', 'index'),
-        *chapters
+        epub.Link('index.xhtml', 'Contents', 'contents'),
+        (epub.Section('Shlokas', 'shloka_01.xhtml'), chapters),
     )
     book.add_item(epub.EpubNcx())
-    book.spine = [title_pg, index_pg] + chapters
+    book.add_item(epub.EpubNav())
+    book.spine = [title_pg, contents_pg] + chapters
     epub.write_epub(OUTPUT_FILE, book, options={'epub3_pages': False})
+    fix_ncx(OUTPUT_FILE)
 
     print("\n==========================================")
     print(f"✓ EPUB created: {OUTPUT_FILE}")
-    print(f"✓ Chapters: {len(chapters)} (+ title & index)")
+    print(f"✓ Chapters: {len(chapters)} (+ title & contents)")
     print(f"✓ Images embedded (Sanskrit=color @ 75%, Illustrations=color @ 75%): {images_added}")
     print("✓ Shloka 6: Sanskrit + English overrides applied")
     print("✓ Shloka 7: Sanskrit override applied")

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Python script that generates an EPUB 2.0.1 e-book of the **Bhaktamara Stotra** (48 sacred verses by Acharya Manatunga). The script scrapes content from jainworld.com, processes Sanskrit text images and illustrations, and creates a reader-friendly EPUB optimized for e-ink devices.
+This is a Python script that generates an EPUB 3 e-book (with NCX fallback) of the **Bhaktamara Stotra** (48 sacred verses by Acharya Manatunga). The script scrapes content from jainworld.com, processes Sanskrit text images and illustrations, and creates a reader-friendly EPUB optimized for e-ink devices.
 
 ## Environment Setup
 
@@ -39,7 +39,7 @@ The script will:
 1. Fetch 48 shloka pages from https://jainworld.jainworld.com/bhs/
 2. Extract Sanskrit text (transliteration + images), English translations, and illustrations
 3. Process images (scale to 75%, preserve color)
-4. Generate EPUB with title page, index, and 48 chapters
+4. Generate EPUB with title page, contents page, and 48 chapters
 
 ## Architecture
 
@@ -47,41 +47,41 @@ The script will:
 
 **`create_epub.py`** - Single-file script with these logical sections:
 
-1. **Configuration** (lines 28-51)
+1. **Configuration**
    - Book metadata, URL patterns, shloka significance mapping
 
-2. **XHTML Templates** (lines 53-93)
-   - EPUB 2.0.1 compliant XHTML 1.1 structure
+2. **XHTML Templates**
+   - Page bodies only: ebooklib discards the hand-written `<head>`, so `style.css` is attached per page with `add_item(css_item)`
    - E-ink optimized CSS (tight spacing, serif font, monochrome-friendly borders)
 
-3. **HTTP Helpers** (lines 95-109)
+3. **HTTP Helpers**
    - `polite_get()`: Retrying HTTP client with exponential backoff
    - `download_image()`: Fetch binary image data
 
-4. **Image Processing** (lines 111-130)
+4. **Image Processing**
    - `resize_media_scale()`: Scales images to 75% while preserving color
    - Handles both JPEG and GIF formats
 
-5. **Content Extraction** (lines 132-243)
+5. **Content Extraction**
    - `extract_shloka_content()`: Core parsing logic
    - Extracts Sanskrit (red text), English (blue text), illustrations, and Sanskrit text images
    - Normalizes `<br />` tags, handles various HTML formats across pages
 
-6. **XHTML Builders** (lines 245-278)
+6. **XHTML Builders**
    - `xhtml_chapter()`: Generates chapter XHTML with significance, images, and text
-   - `xhtml_index()`: TOC with significance annotations
+   - `xhtml_contents()`: Contents page (opening line + significance per shloka), built after fetching
    - `xhtml_title()`: Title page
 
-7. **Main Orchestration** (lines 280-390)
+7. **Main Orchestration**
    - Loops through 48 shlokas
-   - Applies manual overrides for shlokas 6 and 7 (lines 304-320)
+   - Applies manual overrides for shlokas 6 and 7, then `TEXT_FIXES` typo corrections
    - Assembles EPUB with ebooklib
 
 ### Key Design Decisions
 
 - **Image handling**: Sanskrit text images (bhsNNt*.gif) are kept in original color and scaled to 75% for e-ink readability
 - **Text extraction heuristics**: Uses color-based detection (red=Sanskrit transliteration, blue=English) with multiple fallback strategies for inconsistent source HTML
-- **EPUB 2.0.1 compliance**: Strict XHTML 1.1 + NCX for maximum reader compatibility
+- **EPUB 3 + NCX**: ebooklib writes EPUB 3 (nav document required); the NCX keeps a TOC for EPUB 2-era readers
 - **Manual overrides**: Shlokas 6 and 7 have hardcoded text due to formatting issues on source pages
 
 ## Common Tasks
@@ -96,13 +96,14 @@ epubcheck Bhaktamara_Stotra.epub
 ```
 
 ### Modifying Content
-- **Change shloka significance**: Edit `SHLOKA_SIGNIFICANCE` dict (lines 37-51)
-- **Adjust styling**: Edit `CSS` string (lines 74-93)
-- **Fix extraction issues**: Modify `extract_shloka_content()` (lines 134-243)
-- **Add overrides**: Add to main loop around line 340
+- **Change shloka significance**: Edit `SHLOKA_SIGNIFICANCE` dict
+- **Adjust styling**: Edit `CSS` string
+- **Fix extraction issues**: Modify `extract_shloka_content()`
+- **Fix a typo in source text**: Add to `TEXT_FIXES` (shloka -> (field, wrong, right))
+- **Add overrides**: Add to the main loop next to the shloka 6/7 overrides
 
 ### Image Processing
-- **Change scaling**: Modify `scale=0.75` parameter in `resize_media_scale()` calls (lines 210, 231)
+- **Change scaling**: Modify `scale=0.75` parameter in `resize_media_scale()` calls
 - **Convert to B/W**: Uncomment and adapt ImageOps logic (currently removed to preserve color)
 
 ## Debugging
