@@ -40,3 +40,6 @@ env/
 # Project specific
 *.epub.bak
 temp_images/
+
+# Built by GitHub Actions (see .github/workflows/build-epub.yml); not committed
+*.epub

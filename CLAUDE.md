@@ -33,7 +33,7 @@ conda env update -f environment.yml --prune
 python create_epub.py
 ```
 
-**Output:** `Bhaktamara_Stotra.epub` in the current directory
+**Output:** `Bhaktamara_Stotra.epub` in the current directory. It is git-ignored: the published copy is built by GitHub Actions (see Continuous Integration below), so don't commit it.
 
 The script will:
 1. Fetch 48 shloka pages from https://jainworld.jainworld.com/bhs/
