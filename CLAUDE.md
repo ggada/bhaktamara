@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Python script that generates an EPUB 3 e-book (with NCX fallback) of the **Bhaktamara Stotra** (48 sacred verses by Acharya Manatunga). The script scrapes content from jainworld.com, adds the Devanagari text from `sanskrit_devanagari.txt` and the English translation from `translation_english.txt`, processes illustrations, and creates a reader-friendly EPUB optimized for e-ink devices.
+This is a Python script that generates an EPUB 3 e-book (with NCX fallback) of the **Bhaktamara Stotra** (48 sacred verses by Acharya Manatunga). The script scrapes content from jainworld.com, adds the Devanagari text from `sanskrit_devanagari.txt` and the English translation from `translation_english.txt`, embeds the illustrations from `images/`, and creates a reader-friendly EPUB optimized for e-ink devices.
 
 ## Environment Setup
 
@@ -37,8 +37,8 @@ python create_epub.py
 
 The script will:
 1. Fetch 48 shloka pages from https://jainworld.jainworld.com/bhs/
-2. Extract the transliteration, English rendering (used as commentary), and illustration for each shloka
-3. Process images (scale to 75%, preserve color)
+2. Extract the transliteration and English rendering (used as commentary) for each shloka
+3. Embed `images/illustration_NN.jpg` (falls back to downloading the unmodified original)
 4. Generate EPUB with title page, contents page, and 48 chapters
 
 ## Architecture
@@ -58,13 +58,12 @@ The script will:
    - `polite_get()`: Retrying HTTP client with exponential backoff
    - `download_image()`: Fetch binary image data
 
-4. **Image Processing**
-   - `resize_media_scale()`: Scales images to 75% while preserving color
-   - Handles both JPEG and GIF formats
+4. **Illustrations**
+   - `images/illustration_NN.jpg` are pre-built by `tools/upscale_illustrations.py` (not run during the build)
 
 5. **Content Extraction**
    - `extract_shloka_content()`: Core parsing logic
-   - Extracts transliteration (red text), English (blue text), and illustrations
+   - Extracts transliteration (red text) and English (blue text); picks up the illustration from `images/` or the page
    - Normalizes `<br />` tags, handles various HTML formats across pages
 
 6. **XHTML Builders**
@@ -83,7 +82,7 @@ The script will:
 
 - **Devanagari as text**: `sanskrit_devanagari.txt` holds a proofread Unicode text (OCR of Ashok Sethi's ITRANS edition, hand-corrected, cross-checked against bhaktamar.in). It replaces the source site's bhsNNt*.gif text images. `fonts/NotoSerifDevanagari-Regular.ttf` (SIL OFL, license in `fonts/OFL.txt`) is embedded because many e-ink readers have no Devanagari font
 - **Translation vs. commentary**: `translation_english.txt` is a translation made from the Sanskrit for this edition, with `Note:` lines for wordplay (śleṣa) and terms. The jainworld.com English is interpretive rather than literal, so it is kept as a separate "Commentary" box
-- **Illustrations**: kept in original color and scaled to 75% for e-ink readability
+- **Illustrations**: the sources are only ~275x384. `images/` holds 2x Lanczos enlargements blended with 20% of a Real-ESRGAN x4plus upscale. Higher AI strength (50%+) visibly redraws the Jina's eyes (shloka 48 gets a wink), so keep it low and check faces after regenerating
 - **Text extraction heuristics**: Uses color-based detection (red=Sanskrit transliteration, blue=English) with multiple fallback strategies for inconsistent source HTML
 - **EPUB 3 + NCX**: ebooklib writes EPUB 3 (nav document required); the NCX keeps a TOC for EPUB 2-era readers
 - **Manual overrides**: Shlokas 6 and 7 have hardcoded text due to formatting issues on source pages
@@ -109,8 +108,7 @@ epubcheck Bhaktamara_Stotra.epub
 - **Add overrides**: Add to the main loop next to the shloka 6/7 overrides
 
 ### Image Processing
-- **Change scaling**: Modify `scale=0.75` parameter in `resize_media_scale()` calls
-- **Convert to B/W**: Uncomment and adapt ImageOps logic (currently removed to preserve color)
+- **Regenerate illustrations**: `python tools/upscale_illustrations.py --realesrgan /path/to/realesrgan-ncnn-vulkan` (downloads originals, writes `images/`); `--strength` sets the AI blend (default 0.20)
 
 ## Debugging
 
@@ -126,6 +124,6 @@ Errors are caught per-shloka with full traceback, allowing partial EPUB generati
 ## Notes
 
 - The source website uses Windows-1252 encoding (CP1252), handled with fallback to UTF-8
-- MP3 audio links are removed but images preserved
+- MP3 audio links are removed
 - The script is polite with 0.2s delays between requests
 - All 48 verses must be fetched; the script fails if no chapters are added

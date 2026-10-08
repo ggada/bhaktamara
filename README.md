@@ -24,7 +24,7 @@ This script creates an e-ink optimized EPUB containing all 48 verses with:
 ## Features
 
 - Valid EPUB 3 (passes epubcheck) with an NCX table of contents for older readers
-- Color illustrations scaled for e-ink devices (75%)
+- Color illustrations at 2x the source resolution, lightly cleaned with 20% Real-ESRGAN (faces kept as painted)
 - Tight, readable formatting optimized for digital reading
 - Contents page listing every shloka by its opening line, with significance annotations
 - Embedded images (no internet connection required)
