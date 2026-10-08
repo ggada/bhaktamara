@@ -17,7 +17,7 @@ Some also believe in the following significance of different shlokas:
 
 This script creates an e-ink optimized EPUB containing all 48 verses with:
 - Sanskrit text as real Unicode Devanagari (embedded Noto Serif Devanagari font) and transliteration
-- English translations
+- English translation made from the Sanskrit, with notes on wordplay and terms, plus the jainworld.com rendering as a commentary
 - Beautiful illustrations for each shloka
 - Special significance notes for key verses
 
