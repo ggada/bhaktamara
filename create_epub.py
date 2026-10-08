@@ -497,10 +497,11 @@ def main():
 
     contents_pg.content = xhtml_contents(first_lines).encode("utf-8")
 
+    # Flat TOC: Apple Books hides entries nested under a section, so every shloka is top-level
     book.toc = (
         epub.Link('title.xhtml', 'Title', 'title'),
         epub.Link('index.xhtml', 'Contents', 'contents'),
-        (epub.Section('Shlokas', 'shloka_01.xhtml'), chapters),
+        *chapters,
     )
     book.add_item(epub.EpubNcx())
     book.add_item(epub.EpubNav())
