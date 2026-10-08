@@ -21,6 +21,18 @@ This script creates an e-ink optimized EPUB containing all 48 verses with:
 - Beautiful illustrations for each shloka
 - Special significance notes for key verses
 
+## Preview
+
+<p align="center">
+  <img src="docs/screenshots/contents-and-verses.png" alt="The Contents page, and the pages for Shloka 1 and Shloka 48, on a phone-sized screen" width="900">
+</p>
+
+Each verse page has the illustration, the Sanskrit in Devanagari with its transliteration, an English translation with notes on wordplay, and the JainWorld commentary:
+
+<p align="center">
+  <img src="docs/screenshots/verse-page.png" alt="The full page for Shloka 4: illustration, Devanagari, transliteration, translation and commentary" width="340">
+</p>
+
 ## Features
 
 - Valid EPUB 3 (passes epubcheck) with an NCX table of contents for older readers
