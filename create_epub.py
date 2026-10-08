@@ -141,6 +141,9 @@ img { max-width:100%; height:auto; display:block; margin:0.4rem auto; }
 .devanagari { font-family:"Noto Serif Devanagari", serif; font-size:1.15rem; line-height:1.7;
               color:#000; text-align:center; font-style:normal; margin:0.3rem 0 0.7rem 0; }
 .illustration { margin:0.5rem auto; }
+/* images/ are 2x the source size; show them at about the original on-screen size so the
+   illustration and the text share a page (the extra pixels keep it crisp on HiDPI screens) */
+.illustration img { width:13em; max-width:75%; height:auto; }
 '''
 
 # ---------- HTTP helpers ----------
