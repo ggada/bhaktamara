@@ -384,11 +384,53 @@ def xhtml_contents(first_lines):
 
 def xhtml_title():
     body = (f"<p><em>Author:</em> {BOOK_AUTHOR}</p><p>48 Sacred Verses</p>"
-            '<p class="smallnote">Transliteration, commentary and illustrations: jainworld.com. '
-            "English translation and notes made for this edition from the Sanskrit. "
-            "Devanagari text after Ashok Sethi's edition (proofread by Yashwant Malaiya), "
-            "set in Noto Serif Devanagari (SIL Open Font License).</p>")
+            '<p class="smallnote">Text, translation, illustrations and fonts come from the sources credited in the '
+            '<a href="acknowledgements.xhtml">Acknowledgements</a>.</p>')
     return HTML_HEAD.replace("{title}", "Title").replace("{h1}", BOOK_TITLE) + body + HTML_TAIL
+
+# (heading, [paragraph HTML]) — keep in sync with the Acknowledgements section of README.md
+ACKNOWLEDGEMENTS = [
+    ("The hymn", [
+        "The <em>Bhaktāmara Stotra</em> was composed by Ācārya Mānatuṅga. This edition follows the "
+        "48-verse Digambara recension.",
+    ]),
+    ("Transliteration, commentary and illustrations", [
+        'JainWorld (<a href="https://jainworld.jainworld.com/bhs/">jainworld.jainworld.com/bhs</a>), a non-profit '
+        "devoted to Jain philosophy and heritage: the Roman transliteration, the English rendering shown here as "
+        "“Commentary”, and the 48 paintings that illustrate the verses. Small typographic and grammatical "
+        "corrections were made to the text.",
+    ]),
+    ("Devanagari text", [
+        "The Devanagari follows the edition transliterated by Ashok Sethi, with proofreading assistance from Surbhi "
+        "Sethi, prepared with Prof. Yashwant K. Malaiya and published at Colorado State University "
+        '(<a href="https://www.cs.colostate.edu/~malaiya/bhaktamar.html">cs.colostate.edu/~malaiya/bhaktamar.html</a>). '
+        "Its typeset PostScript was read with Tesseract OCR and corrected by hand.",
+        "The text was then checked word by word against the Sanskrit published by Bhaktamar.in "
+        '(<a href="https://www.bhaktamar.in/2020/04/BHAKTAMAR-STOTRA-SANSKRIT.html">bhaktamar.in</a>).',
+    ]),
+    ("English translation and notes", [
+        "The English translation and the notes on wordplay were prepared for this edition directly from the "
+        "Sanskrit, with the assistance of Claude, an AI model by Anthropic. Any errors are this edition's own.",
+    ]),
+    ("Illustration enhancement", [
+        "The illustrations were enlarged to twice their original resolution and lightly cleaned up by blending in "
+        "20% of an upscale made with Real-ESRGAN (Xintao Wang, Liangbin Xie, Chao Dong and Ying Shan, "
+        "“Real-ESRGAN: Training Real-World Blind Super-Resolution with Pure Synthetic Data”, ICCV Workshops 2021; "
+        '<a href="https://github.com/xinntao/Real-ESRGAN">github.com/xinntao/Real-ESRGAN</a>, BSD-3-Clause). '
+        "The blend is kept low so that faces stay exactly as painted.",
+    ]),
+    ("Typeface", [
+        "Devanagari is set in Noto Serif Devanagari by the Noto Project Authors "
+        '(<a href="https://github.com/notofonts/devanagari">github.com/notofonts/devanagari</a>), '
+        "used under the SIL Open Font License 1.1.",
+    ]),
+]
+
+def xhtml_acknowledgements():
+    body = "".join(f"<h2>{head}</h2>" + "".join(f"<p>{para}</p>" for para in paras)
+                   for head, paras in ACKNOWLEDGEMENTS)
+    body += '<p class="smallnote">With gratitude to all who have preserved and shared this hymn. Jai Jinendra.</p>'
+    return HTML_HEAD.replace("{title}", "Acknowledgements").replace("{h1}", "Acknowledgements") + body + HTML_TAIL
 
 # ---------- NCX post-processing ----------
 
@@ -536,15 +578,21 @@ def main():
 
     contents_pg.content = xhtml_contents(first_lines).encode("utf-8")
 
+    ack_pg = epub.EpubHtml(title="Acknowledgements", file_name="acknowledgements.xhtml", lang="en")
+    ack_pg.content = xhtml_acknowledgements().encode("utf-8")
+    ack_pg.add_item(css_item)
+    book.add_item(ack_pg)
+
     # Flat TOC: Apple Books hides entries nested under a section, so every shloka is top-level
     book.toc = (
         epub.Link('title.xhtml', 'Title', 'title'),
         epub.Link('index.xhtml', 'Contents', 'contents'),
         *chapters,
+        epub.Link('acknowledgements.xhtml', 'Acknowledgements', 'acknowledgements'),
     )
     book.add_item(epub.EpubNcx())
     book.add_item(epub.EpubNav())
-    book.spine = [title_pg, contents_pg] + chapters
+    book.spine = [title_pg, contents_pg] + chapters + [ack_pg]
     epub.write_epub(OUTPUT_FILE, book, options={'epub3_pages': False})
     fix_ncx(OUTPUT_FILE)
 
