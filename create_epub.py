@@ -4,8 +4,8 @@
 Bhaktamara Stotra (EPUB 3 + NCX)
 
 This version:
-- Keeps Sanskrit text images (bhsNNt*.gif|jpg) in ORIGINAL color (no B/W),
-  scaled to 75% for e-ink fit.
+- Sanskrit as inline Unicode Devanagari (sanskrit_devanagari.txt), set in an
+  embedded Noto Serif Devanagari font, instead of the source site's text images.
 - Illustrations also scaled to 75% (color preserved).
 - Transliteration forced italic for ALL shlokas.
 - Tight line spacing; normalized <br />.
@@ -16,6 +16,7 @@ This version:
 """
 
 import io
+import os
 import re
 import time
 import uuid
@@ -31,6 +32,10 @@ from PIL import Image
 BOOK_TITLE  = "Bhaktamara Stotra"
 BOOK_AUTHOR = "Acharya Manatunga"
 OUTPUT_FILE = "Bhaktamara_Stotra.epub"
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+DEVANAGARI_FILE = os.path.join(HERE, "sanskrit_devanagari.txt")
+FONT_FILE = os.path.join(HERE, "fonts", "NotoSerifDevanagari-Regular.ttf")
 
 BASE_URL = "https://jainworld.jainworld.com/bhs/"
 CH_URL   = BASE_URL + "bhs{num:02d}.htm"
@@ -54,10 +59,36 @@ SHLOKA_SIGNIFICANCE = {
 }
 
 # Typos in the source pages: shloka -> [(field, wrong, right)]
+# Matched after whitespace is collapsed. Transliteration fixes were checked
+# against the Devanagari in sanskrit_devanagari.txt.
 TEXT_FIXES = {
-    3:  [("english", "impossible took", "impossible task")],
-    5:  [("english", "OApostle", "O Apostle"), ("english", "widdom", "wisdom")],
+    1:  [("english", "Thrthmkara", "Tirthankara"), ("english", "salutation salutations", "salutations")],
+    3:  [("english", "impossible took", "impossible task"), ("english", "inspite", "in spite")],
+    5:  [("english", "OApostle", "O Apostle"), ("english", "widdom", "wisdom"),
+         ("english", "fraility", "frailty"), ("english", "own capacity.", "own capacity.)")],
+    8:  [("sanskrit", "Matveti nath!", "Matveti natha!"), ("sanskrit", "muktaphal dyutim", "muktaphala dyutim")],
+    9:  [("sanskrit", "vikasha bhanjt", "vikasha bhanji"), ("english", "your eulog,", "your eulogy,")],
+    11: [("sanskrit", "uypayatijanasya", "upayati janasya")],
+    15: [("english", "libid gestures", "libidinous gestures"),
+         ("english", "great Sumeru mountain", "great Mandara mountain")],
+    16: [("english", "does not effect it", "does not affect it")],
+    17: [("sanskrit", "kadachidupayast", "kadachidupayasi"), ("english", "unabounding", "unbounded")],
+    20: [("sanskrit", "Teiah sfuran", "Tejah sphuran"), ("sanskrit", "mcihattvam", "mahattvam")],
+    21: [("sanskrit", "to-shameti", "toshameti")],
+    22: [("sanskrit", "digianayati", "dig janayati")],
     24: [("sanskrit", "vibhumachintyq", "vibhumachintyam")],
+    27: [("sanskrit", "sainshrito", "samshrito"), ("sanskrit", "jatagarvalh", "jatagarvaih"),
+         ("sanskrit", "apikshitosil", "apikshitoasi"), ("english", "creeped", "crept")],
+    31: [("sanskrit", "vivraddhashobham", "vivriddhashobham"), ("english", "0 Tirthankara", "O Tirthankara")],
+    35: [("english", "0 Tirthankara", "O Tirthankara")],
+    36: [("sanskrit", "puniakanti", "punjakanti")],
+    38: [("english", "quietitude", "quietude"), ("english", "oppressive of the beings.", "oppressive of the beings.)")],
+    39: [("sanskrit", "kumbhgaladujjvala", "kumbhagaladujjvala")],
+    40: [("english", "conflagaration", "conflagration"), ("english", "laudition", "laudation")],
+    44: [("english", "Abroad a ship", "Aboard a ship")],
+    45: [("sanskrit", "Tvatpadapa,nkaja", "Tvatpadapankaja")],
+    46: [("english", "0 Liberated", "O Liberated")],
+    47: [("sanskrit", "bhlyeua", "bhiyeva")],
 }
 
 # ---------- XHTML shell ----------
@@ -99,7 +130,10 @@ img { max-width:100%; height:auto; display:block; margin:0.4rem auto; }
 .translation { border:1px solid #000; padding:0.65rem; border-radius:4px; background:#fff; }
 .sanskrit-text { font-size:1.05rem; line-height:1.4; color:#000; text-align:center; font-style: italic; }
 .translation-text { font-size:1.0rem; line-height:1.4; color:#000; text-align:justify; }
-.sanskrit-gif { margin:0.35rem auto; }
+@font-face { font-family:"Noto Serif Devanagari"; font-weight:normal; font-style:normal;
+             src:url("fonts/NotoSerifDevanagari-Regular.ttf"); }
+.devanagari { font-family:"Noto Serif Devanagari", serif; font-size:1.15rem; line-height:1.7;
+              color:#000; text-align:center; font-style:normal; margin:0.3rem 0 0.7rem 0; }
 .illustration { margin:0.5rem auto; }
 '''
 
@@ -147,8 +181,7 @@ def extract_shloka_content(html_text, page_url, session, shloka_num):
     Returns:
       sanskrit_html (str, with <br /> kept, normalized & compact),
       english_html  (str, with <br /> kept, normalized & compact),
-      illustration: (filename, bytes, media_type) or None,
-      sanskrit_imgs: list[(filename, bytes, media_type)]
+      illustration: (filename, bytes, media_type) or None
     """
     soup = BeautifulSoup(html_text, "lxml")
 
@@ -223,39 +256,35 @@ def extract_shloka_content(html_text, page_url, session, shloka_num):
         except Exception:
             illustration = None
 
-    # Sanskrit text images: bhsNNt*.gif|jpg (keep ORIGINAL color; just scale 75%)
-    t_pattern = re.compile(rf"bhs{shloka_num:02d}t[a-z0-9]*\.(?:gif|jpg|jpeg)$", re.I)
-    sanskrit_imgs, seen = [], set()
-    for img in scope.find_all('img', src=True):
-        src = img['src']
-        if t_pattern.search(src):
-            full = urljoin(page_url, src)
-            if full in seen:
-                continue
-            seen.add(full)
-            try:
-                bytes_in = download_image(session, full)
-                if re.search(r"\.(jpe?g)$", full, re.I):
-                    mt, ext = "image/jpeg", ".jpg"
-                else:
-                    mt, ext = "image/gif", ".gif"
-                bytes_out = resize_media_scale(bytes_in, mt, scale=0.75)
-                idx = len(sanskrit_imgs) + 1
-                sanskrit_imgs.append((f"sanskrit_{shloka_num:02d}_{idx}{ext}", bytes_out, mt))
-            except Exception:
-                pass
-
     # Normalize again just in case
     if sanskrit_html:
         sanskrit_html = re.sub(r'(?:<br\s*/>\s*){2,}', '<br />', sanskrit_html, flags=re.I).strip()
     if english_html:
         english_html = re.sub(r'(?:<br\s*/>\s*){2,}', '<br />', english_html, flags=re.I).strip()
 
-    return sanskrit_html, english_html, illustration, sanskrit_imgs
+    return sanskrit_html, english_html, illustration
+
+# ---------- Devanagari text ----------
+
+def load_devanagari(path=DEVANAGARI_FILE):
+    """Parse sanskrit_devanagari.txt -> {shloka: [4 lines]}; fail loudly if it's malformed."""
+    digits = str.maketrans("०१२३४५६७८९", "0123456789")
+    with open(path, encoding="utf-8") as f:
+        text = "\n".join(l for l in f.read().splitlines() if not l.startswith("#"))
+    verses = {}
+    for block in text.strip().split("\n\n"):
+        lines = [l.strip() for l in block.strip().splitlines()]
+        m = re.search(r"॥\s*([०-९]+)\s*॥$", lines[-1])
+        if len(lines) != 4 or not m:
+            raise ValueError(f"Bad verse block in {path}:\n{block}")
+        verses[int(m.group(1).translate(digits))] = lines
+    if sorted(verses) != list(range(1, 49)):
+        raise ValueError(f"{path} must contain verses 1-48, got {sorted(verses)}")
+    return verses
 
 # ---------- XHTML builders ----------
 
-def xhtml_chapter(shloka_num, sanskrit_html, english_html, illustration_name, sanskrit_img_names):
+def xhtml_chapter(shloka_num, devanagari_lines, sanskrit_html, english_html, illustration_name):
     sig = SHLOKA_SIGNIFICANCE.get(shloka_num, "")
     parts = []
     if sig:
@@ -263,8 +292,7 @@ def xhtml_chapter(shloka_num, sanskrit_html, english_html, illustration_name, sa
     if illustration_name:
         parts.append(f'<div class="image-container illustration"><img src="{illustration_name}" alt="Shloka {shloka_num} illustration" /></div>')
     parts.append('<div class="sanskrit"><h2>Sanskrit Text</h2>')
-    for nm in sanskrit_img_names:
-        parts.append(f'<img class="sanskrit-gif" src="{nm}" alt="Shloka {shloka_num} Sanskrit image" />')
+    parts.append('<p class="devanagari" lang="sa" xml:lang="sa">' + "<br />".join(devanagari_lines) + '</p>')
     # Force italics via <em> to handle strict readers
     sanskrit_render = f'<em>{sanskrit_html or "Content not available"}</em>'
     parts.append(f'<p class="sanskrit-text">{sanskrit_render}</p></div>')
@@ -293,7 +321,10 @@ def xhtml_contents(first_lines):
     return HTML_HEAD.replace("{title}", "Contents").replace("{h1}", "Contents") + body + HTML_TAIL
 
 def xhtml_title():
-    body = f"<p><em>Author:</em> {BOOK_AUTHOR}</p><p>48 Sacred Verses</p>"
+    body = (f"<p><em>Author:</em> {BOOK_AUTHOR}</p><p>48 Sacred Verses</p>"
+            '<p class="smallnote">Transliteration, translation and illustrations: jainworld.com. '
+            "Devanagari text after Ashok Sethi's edition (proofread by Yashwant Malaiya), "
+            "set in Noto Serif Devanagari (SIL Open Font License).</p>")
     return HTML_HEAD.replace("{title}", "Title").replace("{h1}", BOOK_TITLE) + body + HTML_TAIL
 
 # ---------- NCX post-processing ----------
@@ -336,6 +367,10 @@ def main():
 
     css_item = epub.EpubItem(uid="style", file_name="style.css", media_type="text/css", content=CSS.encode("utf-8"))
     book.add_item(css_item)
+    with open(FONT_FILE, "rb") as f:
+        book.add_item(epub.EpubItem(uid="font_deva", file_name="fonts/NotoSerifDevanagari-Regular.ttf",
+                                    media_type="font/ttf", content=f.read()))
+    devanagari = load_devanagari()
 
     title_pg = epub.EpubHtml(title="Title", file_name="title.xhtml", lang="en")
     title_pg.content = xhtml_title().encode("utf-8")
@@ -357,7 +392,7 @@ def main():
         "the mango buds of spring impel the cuckoo to pour out its sweet song."
     )
     SANSKRIT_OVERRIDE_6 = (
-        "alpashrutam shrutavatam parihasadham<br />"
+        "alpashrutam shrutavatam parihasadhama<br />"
         "tvad bhaktireva mukharikurute balanmam<br />"
         "yatkokilah kila madhau madhuram virauti<br />"
         "tachcharuchuta - kalikanikaraikahetu"
@@ -383,7 +418,7 @@ def main():
             except UnicodeDecodeError:
                 html_text = r.text
 
-            sanskrit_html, english_html, illustration, sanskrit_imgs = extract_shloka_content(
+            sanskrit_html, english_html, illustration = extract_shloka_content(
                 html_text, url, session, i
             )
 
@@ -394,28 +429,31 @@ def main():
             elif i == 7:
                 sanskrit_html = SANSKRIT_OVERRIDE_7
 
+            sanskrit_html = re.sub(r"\s+", " ", sanskrit_html)
+            english_html = re.sub(r"\s+", " ", english_html)
             for field, wrong, right in TEXT_FIXES.get(i, []):
+                text = english_html if field == "english" else sanskrit_html
+                if wrong not in text:
+                    print(f"  ! TEXT_FIXES: '{wrong}' not found in {field} text (already fixed upstream?)")
+                    continue
+                text = text.replace(wrong, right)
                 if field == "english":
-                    english_html = english_html.replace(wrong, right)
+                    english_html = text
                 else:
-                    sanskrit_html = sanskrit_html.replace(wrong, right)
+                    sanskrit_html = text
 
             first_lines[i] = first_line(sanskrit_html)
             ill_name = illustration[0] if illustration else None
-            san_names = [nm for (nm, _b, _mt) in sanskrit_imgs]
 
             ch = epub.EpubHtml(title=f"Shloka {i}: {first_lines[i]}", file_name=f"shloka_{i:02d}.xhtml", lang="en")
             ch.add_item(css_item)
-            ch.content = xhtml_chapter(i, sanskrit_html, english_html, ill_name, san_names).encode("utf-8")
+            ch.content = xhtml_chapter(i, devanagari[i], sanskrit_html, english_html, ill_name).encode("utf-8")
             book.add_item(ch)
             chapters.append(ch)
 
             if illustration:
                 nm, data, mt = illustration
                 book.add_item(epub.EpubItem(uid=f"img_ill_{i:02d}", file_name=nm, media_type=mt, content=data))
-                images_added += 1
-            for idx, (nm, data, mt) in enumerate(sanskrit_imgs, 1):
-                book.add_item(epub.EpubItem(uid=f"img_san_{i:02d}_{idx}", file_name=nm, media_type=mt, content=data))
                 images_added += 1
 
             time.sleep(0.2)
@@ -442,7 +480,8 @@ def main():
     print("\n==========================================")
     print(f"✓ EPUB created: {OUTPUT_FILE}")
     print(f"✓ Chapters: {len(chapters)} (+ title & contents)")
-    print(f"✓ Images embedded (Sanskrit=color @ 75%, Illustrations=color @ 75%): {images_added}")
+    print(f"✓ Illustrations embedded (color @ 75%): {images_added}")
+    print("✓ Sanskrit: inline Devanagari (embedded Noto Serif Devanagari)")
     print("✓ Shloka 6: Sanskrit + English overrides applied")
     print("✓ Shloka 7: Sanskrit override applied")
     print("✓ Transliteration: italic + tight line spacing")

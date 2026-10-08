@@ -16,7 +16,7 @@ Some also believe in the following significance of different shlokas:
 - **Shloka 48**: Spiritual liberation
 
 This script creates an e-ink optimized EPUB containing all 48 verses with:
-- Sanskrit text in Devanagari (as images) and transliteration
+- Sanskrit text as real Unicode Devanagari (embedded Noto Serif Devanagari font) and transliteration
 - English translations
 - Beautiful illustrations for each shloka
 - Special significance notes for key verses
@@ -24,7 +24,7 @@ This script creates an e-ink optimized EPUB containing all 48 verses with:
 ## Features
 
 - Valid EPUB 3 (passes epubcheck) with an NCX table of contents for older readers
-- Color Sanskrit text and illustrations scaled for e-ink devices (75%)
+- Color illustrations scaled for e-ink devices (75%)
 - Tight, readable formatting optimized for digital reading
 - Contents page listing every shloka by its opening line, with significance annotations
 - Embedded images (no internet connection required)
