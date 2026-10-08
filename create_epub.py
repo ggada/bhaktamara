@@ -4,6 +4,8 @@
 Bhaktamara Stotra (EPUB 3 + NCX)
 
 This version:
+- English translation from translation_english.txt (made from the Sanskrit, with
+  notes on wordplay); the jainworld.com rendering is kept as a commentary.
 - Sanskrit as inline Unicode Devanagari (sanskrit_devanagari.txt), set in an
   embedded Noto Serif Devanagari font, instead of the source site's text images.
 - Illustrations also scaled to 75% (color preserved).
@@ -22,6 +24,7 @@ import time
 import uuid
 import traceback
 import zipfile
+from html import escape
 from urllib.parse import urljoin
 
 import requests
@@ -35,6 +38,7 @@ OUTPUT_FILE = "Bhaktamara_Stotra.epub"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEVANAGARI_FILE = os.path.join(HERE, "sanskrit_devanagari.txt")
+TRANSLATION_FILE = os.path.join(HERE, "translation_english.txt")
 FONT_FILE = os.path.join(HERE, "fonts", "NotoSerifDevanagari-Regular.ttf")
 
 BASE_URL = "https://jainworld.jainworld.com/bhs/"
@@ -130,6 +134,8 @@ img { max-width:100%; height:auto; display:block; margin:0.4rem auto; }
 .translation { border:1px solid #000; padding:0.65rem; border-radius:4px; background:#fff; }
 .sanskrit-text { font-size:1.05rem; line-height:1.4; color:#000; text-align:center; font-style: italic; }
 .translation-text { font-size:1.0rem; line-height:1.4; color:#000; text-align:justify; }
+.translation-note { font-size:0.9rem; line-height:1.35; color:#000; font-style:italic; margin-top:0.4rem; }
+.commentary { border:1px solid #000; padding:0.65rem; border-radius:4px; background:#fff; margin-top:0.6rem; }
 @font-face { font-family:"Noto Serif Devanagari"; font-weight:normal; font-style:normal;
              src:url("fonts/NotoSerifDevanagari-Regular.ttf"); }
 .devanagari { font-family:"Noto Serif Devanagari", serif; font-size:1.15rem; line-height:1.7;
@@ -282,9 +288,25 @@ def load_devanagari(path=DEVANAGARI_FILE):
         raise ValueError(f"{path} must contain verses 1-48, got {sorted(verses)}")
     return verses
 
+def load_translations(path=TRANSLATION_FILE):
+    """Parse translation_english.txt -> {shloka: (translation, note or "")}."""
+    with open(path, encoding="utf-8") as f:
+        text = "\n".join(l for l in f.read().splitlines() if not l.startswith("#") or l.startswith("## "))
+    out = {}
+    for m in re.finditer(r"^## (\d+)\n(.*?)(?=^## |\Z)", text, flags=re.S | re.M):
+        lines = [l.strip() for l in m.group(2).strip().splitlines() if l.strip()]
+        note = " ".join(l[len("Note:"):].strip() for l in lines if l.startswith("Note:"))
+        body = " ".join(l for l in lines if not l.startswith("Note:"))
+        if not body:
+            raise ValueError(f"Verse {m.group(1)} has no translation in {path}")
+        out[int(m.group(1))] = (body, note)
+    if sorted(out) != list(range(1, 49)):
+        raise ValueError(f"{path} must contain verses 1-48, got {sorted(out)}")
+    return out
+
 # ---------- XHTML builders ----------
 
-def xhtml_chapter(shloka_num, devanagari_lines, sanskrit_html, english_html, illustration_name):
+def xhtml_chapter(shloka_num, devanagari_lines, sanskrit_html, translation, commentary_html, illustration_name):
     sig = SHLOKA_SIGNIFICANCE.get(shloka_num, "")
     parts = []
     if sig:
@@ -296,8 +318,15 @@ def xhtml_chapter(shloka_num, devanagari_lines, sanskrit_html, english_html, ill
     # Force italics via <em> to handle strict readers
     sanskrit_render = f'<em>{sanskrit_html or "Content not available"}</em>'
     parts.append(f'<p class="sanskrit-text">{sanskrit_render}</p></div>')
+    text, note = translation
     parts.append('<div class="translation"><h2>English Translation</h2>')
-    parts.append(f'<p class="translation-text">{(english_html or "Translation not available")}</p></div>')
+    parts.append(f'<p class="translation-text">{escape(text)}</p>')
+    if note:
+        parts.append(f'<p class="translation-note">{escape(note)}</p>')
+    parts.append('</div>')
+    if commentary_html:
+        parts.append('<div class="commentary"><h2>Commentary</h2>')
+        parts.append(f'<p class="translation-text">{commentary_html}</p></div>')
     title = f"Shloka {shloka_num:02d}"
     return HTML_HEAD.replace("{title}", title).replace("{h1}", title) + "".join(parts) + HTML_TAIL
 
@@ -322,7 +351,8 @@ def xhtml_contents(first_lines):
 
 def xhtml_title():
     body = (f"<p><em>Author:</em> {BOOK_AUTHOR}</p><p>48 Sacred Verses</p>"
-            '<p class="smallnote">Transliteration, translation and illustrations: jainworld.com. '
+            '<p class="smallnote">Transliteration, commentary and illustrations: jainworld.com. '
+            "English translation and notes made for this edition from the Sanskrit. "
             "Devanagari text after Ashok Sethi's edition (proofread by Yashwant Malaiya), "
             "set in Noto Serif Devanagari (SIL Open Font License).</p>")
     return HTML_HEAD.replace("{title}", "Title").replace("{h1}", BOOK_TITLE) + body + HTML_TAIL
@@ -371,6 +401,7 @@ def main():
         book.add_item(epub.EpubItem(uid="font_deva", file_name="fonts/NotoSerifDevanagari-Regular.ttf",
                                     media_type="font/ttf", content=f.read()))
     devanagari = load_devanagari()
+    translations = load_translations()
 
     title_pg = epub.EpubHtml(title="Title", file_name="title.xhtml", lang="en")
     title_pg.content = xhtml_title().encode("utf-8")
@@ -447,7 +478,7 @@ def main():
 
             ch = epub.EpubHtml(title=f"Shloka {i}: {first_lines[i]}", file_name=f"shloka_{i:02d}.xhtml", lang="en")
             ch.add_item(css_item)
-            ch.content = xhtml_chapter(i, devanagari[i], sanskrit_html, english_html, ill_name).encode("utf-8")
+            ch.content = xhtml_chapter(i, devanagari[i], sanskrit_html, translations[i], english_html, ill_name).encode("utf-8")
             book.add_item(ch)
             chapters.append(ch)
 

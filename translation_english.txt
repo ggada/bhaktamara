@@ -1,0 +1,166 @@
+# English translation of the Bhaktamara Stotra, made for this edition directly
+# from the Devanagari in sanskrit_devanagari.txt. It aims to stay close to the
+# Sanskrit and keep its imagery; "Note:" lines explain wordplay and terms.
+# Format: "## N" starts a verse; the paragraph after it is the translation;
+# an optional line starting "Note:" follows.
+
+## 1
+The gods bow down in devotion, and the jewels in their crowns shine brighter in the light of the Jina's feet — feet that shatter the spreading darkness of sin, and that at the dawn of this age became the one support for beings sinking in the waters of worldly existence. Having bowed to those feet with my whole being,
+Note: Verses 1 and 2 form a single sentence that ends in verse 2.
+
+## 2
+I too shall now praise that first Jina, Lord Rishabha — whom the lords of heaven themselves, their minds made keen by grasping the essence of all scripture, have praised in noble hymns that captivate the hearts of the three worlds.
+
+## 3
+O Lord, whose footstool the gods worship! Though I lack understanding, I have shed all shame and set my mind on praising you. Who but a small child would suddenly reach out to seize the moon's reflection lying in the water?
+
+## 4
+O ocean of virtues! Your virtues are lovely as the moon. Who could describe them — even one whose intellect equals Brihaspati, teacher of the gods? Who could swim with bare arms across the ocean when the winds at the end of the age whip its crocodiles into a frenzy?
+
+## 5
+And yet, O lord of sages, powerless as I am, devotion drives me to compose this praise. Does not a doe, out of love, without weighing her own strength, stand against a lion to protect her fawn?
+
+## 6
+I have little learning and am a laughing-stock to the learned; it is devotion to you alone that forces me to speak. When the cuckoo sings sweetly in spring, its only cause is the clusters of lovely mango buds.
+Note: The poet is the cuckoo; the Lord's virtues are the mango blossoms that make him sing.
+
+## 7
+Through praise of you, the sin that embodied beings have bound to themselves over an endless chain of births is destroyed in a moment — just as the night's darkness, black as a bee, which has overrun the whole world, is swiftly and wholly pierced by the rays of the sun.
+
+## 8
+Thinking this, O Lord, I begin this hymn to you, slender as my understanding is; by your power it will win the hearts of the good. A drop of water on a lotus leaf surely takes on the lustre of a pearl.
+
+## 9
+Let alone your praise, from which every fault has been cast out — even mere talk of you destroys the sins of the world. The thousand-rayed sun is far away, yet its glow alone makes the lotuses in the ponds open into bloom.
+
+## 10
+O ornament of the world, O lord of all beings! It is no great wonder that those on earth who praise you for your true virtues become your equals. What use is a master who does not raise those who depend on him to his own prosperity?
+Note: The verse plays on bhūta (beings, true) and bhūti (prosperity, glory).
+
+## 11
+Once it has seen you — a sight to gaze at without blinking — a person's eye can find delight nowhere else. Having drunk the milk of the Ocean of Milk, white as moonbeams, who would wish to taste the salt water of the sea?
+
+## 12
+O sole ornament of the three worlds! The atoms, glowing with the calm of passionlessness, from which your body was formed must have been just that many and no more — for nowhere on earth is there another form equal to yours.
+
+## 13
+How can your face — which captivates the eyes of gods, humans and serpent-beings, and has left every comparison in the three worlds behind — be set beside the moon's disc, smudged by its stain, which by day turns pale as a withered palasha leaf?
+
+## 14
+Your virtues, bright as the full moon with all its digits, range across the three worlds and beyond. O lord of the three worlds, who can stop those who have taken refuge in you, the one Lord, from going wherever they wish?
+
+## 15
+What wonder is it if the celestial maidens could not draw your mind even slightly onto the path of desire? Has the peak of Mount Mandara ever been shaken by the gale at the end of the age, which sets every other mountain trembling?
+
+## 16
+Without smoke, without wick, needing no oil, you reveal this whole triple world; the winds that shake mountains can never reach you. O Lord, you are a lamp of another kind — the light of the world.
+
+## 17
+You never set; Rahu cannot seize you; in an instant you light up all the worlds together; no belly of cloud can hide your great radiance. O lord of sages, your greatness surpasses the sun's.
+Note: Rahu is the demon believed to swallow the sun and moon at an eclipse.
+
+## 18
+Your lotus face shines as a moon never seen before: always risen, it destroys the great darkness of delusion; neither Rahu's mouth nor the clouds can reach it; its radiance is boundless, and it lights up the whole world.
+
+## 19
+When the moon of your face has shattered the darkness, O Lord, what need is there of the moon by night or the sun by day? When the world is rich with fields of ripened rice, what use are clouds bowed low with their weight of water?
+
+## 20
+Knowledge shines in you, having found its full home there, as it does not in other leaders such as Hari and Hara. Brilliance reaches its greatness in sparkling gems, but never in a shard of glass, even when it glitters in the light.
+Note: Hari and Hara are Vishnu and Shiva.
+
+## 21
+I think it was well that I saw Hari, Hara and the others first: having seen them, my heart finds its contentment in you. And what have I gained by seeing you? That no one else on earth can captivate my mind, O Lord — not even in another life.
+Note: The verse is praise in the guise of complaint (vyājastuti): seeing the Lord has spoiled the poet for anyone else.
+
+## 22
+Women bear sons by the hundreds upon hundreds, but no other mother has borne a son like you. All the directions hold stars, but only the east gives birth to the thousand-rayed sun with its blazing net of rays.
+
+## 23
+Sages declare you the supreme Person, radiant as the sun, stainless, beyond all darkness. Only by truly attaining you do they conquer death; there is no other auspicious path to the abode of bliss, O lord of sages.
+Note: "Radiant as the sun, beyond darkness" (āditya-varṇaṃ tamasaḥ parastāt) echoes a famous Upanishadic description of the supreme Person.
+
+## 24
+The wise call you imperishable, all-pervading, inconceivable, beyond number, the first; Brahma, the Lord, the infinite, the comet that ends the god of love; lord of yogis, knower of yoga, many and yet one; knowledge itself, stainless.
+Note: Anaṅga-ketu: a ketu (comet, portent of doom) to Anaṅga, the bodiless god of desire.
+
+## 25
+You alone are the Buddha, O you whom the gods worship, for your awakened understanding; you are Shankara, for you bring peace to the three worlds; you are the Creator, O steadfast one, for you laid down the way to liberation; clearly, O Blessed One, you alone are the Supreme Person.
+Note: Each title of another tradition is reclaimed by its literal meaning: Buddha "the awakened", Śaṅkara "giver of peace", Dhātā "the ordainer", Puruṣottama "the highest person".
+
+## 26
+Homage to you, O Lord, who take away the suffering of the three worlds! Homage to you, spotless ornament of the earth! Homage to you, supreme lord of the three worlds! Homage to you, O Jina, who dry up the ocean of rebirth!
+
+## 27
+What wonder is it, O lord of sages, if every virtue has taken refuge in you, leaving no room for anything else? The faults, grown proud of the many other homes they have found, have never once looked upon you — not even in a dream.
+
+## 28
+Seated beneath the tall ashoka tree, your stainless form, sending its rays upward, shines exceedingly — like the sun's disc beside a cloud, its rays clearly gleaming, the spread of darkness destroyed.
+Note: Verses 28–35 describe the prātihāryas, the eight splendours that attend a Tirthankara: the ashoka tree, the lion-throne, the fly-whisks, the triple parasol, the celestial drum, the shower of flowers, the halo and the divine voice.
+
+## 29
+On the lion-throne, many-coloured with the flame-tips of jewel rays, your golden body shines like the disc of the thousand-rayed sun on the summit of the lofty eastern mountain, spreading its creeper-like rays across the sky.
+
+## 30
+Your body, bright as gold, beautiful with waving fly-whisks white as jasmine, shines like the high golden slope of Meru, mountain of the gods, down which pour waterfalls pure as the rising moon.
+
+## 31
+Your triple parasol shines, lovely as the moon; raised on high, it screens off the heat of the sun's rays; its beauty is heightened by a net of clustered pearls; it proclaims your supreme lordship over the three worlds.
+
+## 32
+The celestial drum resounds in the sky, filling every quarter with its deep, ringing voice. Able to lead the beings of the three worlds to auspicious union and well-being, it heralds the victory of the King of the true Dharma — it is the proclaimer of your glory.
+
+## 33
+A heavenly shower of flowers — mandara, sundara, nameru, parijata, santanaka and more — falls from the sky, borne on a gentle, auspicious breeze with drops of fragrant water, as if it were the stream of your words.
+Note: These are flowers of the heavenly trees. The Digambara tradition holds that they fall with their faces turned upward.
+
+## 34
+The vast splendour of your shining halo, O Lord, outshines the brilliance of everything luminous in the three worlds. Its radiance is like countless suns rising together, yet it surpasses even the moonlit night in gentle coolness.
+
+## 35
+Your divine voice is dear to those who seek the path to heaven and to liberation; it alone is skilled in teaching the truth of the true Dharma to the three worlds. Clear in meaning, it has the power to transform itself into the nature of every language.
+Note: The divya-dhvani is the Tirthankara's sermon, which each listener — human, god or animal — hears in their own tongue.
+
+## 36
+Your feet glow like a cluster of fresh golden lotuses in full bloom, and are lovely with the gleaming rays of their nails. Wherever, O lord of the Jinas, they take a step, there the gods spread lotuses.
+
+## 37
+Such was your glory, O lord of the Jinas, while you taught the Dharma; no one else has possessed it. Where could the host of planets, however bright, find radiance like the darkness-destroying light of the sun?
+
+## 38
+Those who have taken refuge in you feel no fear on seeing a furious elephant, huge as Airavata, charging down on them — its temples streaked with oozing ichor, its rage swollen by the hum of drunken bees circling its cheeks.
+Note: Verses 38–46 name the eight great fears — elephant, lion, fire, serpent, battle (two verses), ocean, disease and bondage — that remembrance of the Jina removes.
+
+## 39
+A lion, king of beasts, has split the temples of elephants and strewn the ground with clusters of pearls smeared with bright blood; now it crouches to spring. Yet even this lion will not attack someone already within its reach, if he has taken refuge in the mountain of your feet.
+Note: Pearls were believed to form inside the temples of great elephants.
+
+## 40
+A forest fire like the fire fanned by the winds at the end of the age — blazing, brilliant, flinging up sparks, rushing forward as if to devour the universe — the water of chanting your name puts it out completely.
+
+## 41
+A man who holds in his heart your name, the herb that subdues serpents, fearlessly steps with both feet over a cobra rushing at him: red-eyed, dark as the throat of an impassioned cuckoo, swollen with rage, its hood raised.
+
+## 42
+On the battlefield, even the army of mighty kings, with its terrible din of prancing horses and trumpeting elephants, quickly breaks apart when your praise is sung — like darkness pierced by the shafts of the rising sun.
+
+## 43
+In a battle made terrible by warriors eager to cross the rushing rivers of blood that pour from elephants pierced by spear-points, those who take refuge in the lotus grove of your feet defeat even an unconquerable enemy and win the victory.
+
+## 44
+On an ocean where fearsome crocodiles and great fish are churned up, where the dreadful submarine fire blazes, those whose ships are tossed on the crests of rolling waves lose their fear by remembering you, and sail on in safety.
+Note: The vāḍavāgni is the mythical fire beneath the ocean.
+
+## 45
+Mortals bent double under the weight of a terrible dropsy, brought to a pitiable state, all hope of life gone — when their bodies are anointed with the nectar of the dust of your lotus feet, they become as beautiful as the god of love.
+Note: Makaradhvaja, "whose banner bears the makara", is Kāma, the god of love and a byword for beauty.
+
+## 46
+People bound from feet to neck in heavy chains, their shins rubbed raw by the edges of great iron fetters — by remembering the mantra of your name without ceasing, they are at once, of themselves, freed from the fear of bondage.
+
+## 47
+The wise person who studies this hymn of yours finds that every fear — of maddened elephants, lions, forest fire, serpents, battle, the ocean, dropsy and bondage — swiftly perishes, as if fear itself were afraid of him.
+
+## 48
+O lord of the Jinas, I have strung this garland of praise with devotion, threaded with your virtues and bright with flowers of many lovely colours. Whoever wears it always at the throat, to that person — Manatunga, high in honour — Lakshmi, the goddess of fortune, comes of her own accord.
+Note: The verse is built on double meanings: guṇa is both "virtue" and "thread", varṇa both "colour" and "letter", and wearing the garland at the throat means knowing the hymn by heart. Māna-tuṅga, "high in honour", is also the poet's signature.

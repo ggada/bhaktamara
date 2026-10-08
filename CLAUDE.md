@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Python script that generates an EPUB 3 e-book (with NCX fallback) of the **Bhaktamara Stotra** (48 sacred verses by Acharya Manatunga). The script scrapes content from jainworld.com, adds the Devanagari text from `sanskrit_devanagari.txt`, processes illustrations, and creates a reader-friendly EPUB optimized for e-ink devices.
+This is a Python script that generates an EPUB 3 e-book (with NCX fallback) of the **Bhaktamara Stotra** (48 sacred verses by Acharya Manatunga). The script scrapes content from jainworld.com, adds the Devanagari text from `sanskrit_devanagari.txt` and the English translation from `translation_english.txt`, processes illustrations, and creates a reader-friendly EPUB optimized for e-ink devices.
 
 ## Environment Setup
 
@@ -37,7 +37,7 @@ python create_epub.py
 
 The script will:
 1. Fetch 48 shloka pages from https://jainworld.jainworld.com/bhs/
-2. Extract the transliteration, English translation, and illustration for each shloka
+2. Extract the transliteration, English rendering (used as commentary), and illustration for each shloka
 3. Process images (scale to 75%, preserve color)
 4. Generate EPUB with title page, contents page, and 48 chapters
 
@@ -69,7 +69,8 @@ The script will:
 
 6. **XHTML Builders**
    - `load_devanagari()`: Reads and validates `sanskrit_devanagari.txt` (48 four-line verses ending ॥ N ॥)
-   - `xhtml_chapter()`: Generates chapter XHTML with significance, illustration, Devanagari, transliteration, translation
+   - `load_translations()`: Reads and validates `translation_english.txt` (`## N` blocks, optional `Note:` line)
+   - `xhtml_chapter()`: Generates chapter XHTML with significance, illustration, Devanagari, transliteration, translation (+ note), commentary
    - `xhtml_contents()`: Contents page (opening line + significance per shloka), built after fetching
    - `xhtml_title()`: Title page
 
@@ -81,6 +82,7 @@ The script will:
 ### Key Design Decisions
 
 - **Devanagari as text**: `sanskrit_devanagari.txt` holds a proofread Unicode text (OCR of Ashok Sethi's ITRANS edition, hand-corrected, cross-checked against bhaktamar.in). It replaces the source site's bhsNNt*.gif text images. `fonts/NotoSerifDevanagari-Regular.ttf` (SIL OFL, license in `fonts/OFL.txt`) is embedded because many e-ink readers have no Devanagari font
+- **Translation vs. commentary**: `translation_english.txt` is a translation made from the Sanskrit for this edition, with `Note:` lines for wordplay (śleṣa) and terms. The jainworld.com English is interpretive rather than literal, so it is kept as a separate "Commentary" box
 - **Illustrations**: kept in original color and scaled to 75% for e-ink readability
 - **Text extraction heuristics**: Uses color-based detection (red=Sanskrit transliteration, blue=English) with multiple fallback strategies for inconsistent source HTML
 - **EPUB 3 + NCX**: ebooklib writes EPUB 3 (nav document required); the NCX keeps a TOC for EPUB 2-era readers
@@ -102,6 +104,7 @@ epubcheck Bhaktamara_Stotra.epub
 - **Adjust styling**: Edit `CSS` string
 - **Fix extraction issues**: Modify `extract_shloka_content()`
 - **Fix a typo in source text**: Add to `TEXT_FIXES` (shloka -> (field, wrong, right)); the build warns if a fix no longer matches
+- **Edit a translation or note**: Edit `translation_english.txt`
 - **Correct the Devanagari**: Edit `sanskrit_devanagari.txt` (keep 4 lines per verse, ending ॥ N ॥)
 - **Add overrides**: Add to the main loop next to the shloka 6/7 overrides
 
