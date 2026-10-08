@@ -89,6 +89,9 @@ The script will:
 
 ## Common Tasks
 
+### Continuous Integration
+`.github/workflows/build-epub.yml` builds the EPUB on push to `main`, on PRs and on demand: pip-installs `requirements.txt` (keep it in sync with `environment.yml`), checks all 48 shlokas are present, runs EPUBCheck, uploads the EPUB as an artifact, and on `main` replaces the file on the rolling `latest` release.
+
 ### Testing Locally
 ```bash
 # Run the script

@@ -1,0 +1,88 @@
+name: Build EPUB
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  EPUBCHECK_VERSION: "5.1.0"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate EPUB
+        run: |
+          mkdir -p dist
+          cd dist
+          python ../create_epub.py | tee build.log
+
+      - name: Check all 48 shlokas are present
+        run: |
+          python - <<'EOF'
+          import sys, zipfile
+          names = zipfile.ZipFile("dist/Bhaktamara_Stotra.epub").namelist()
+          chapters = [n for n in names if n.startswith("EPUB/shloka_")]
+          print(f"{len(chapters)} shloka chapters")
+          sys.exit(0 if len(chapters) == 48 else 1)
+          EOF
+          if grep -q "! Error" dist/build.log; then echo "Some shlokas failed to fetch"; exit 1; fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Validate with EPUBCheck
+        run: |
+          curl -sSL -o epubcheck.zip "https://github.com/w3c/epubcheck/releases/download/v${EPUBCHECK_VERSION}/epubcheck-${EPUBCHECK_VERSION}.zip"
+          unzip -q epubcheck.zip
+          java -jar "epubcheck-${EPUBCHECK_VERSION}/epubcheck.jar" dist/Bhaktamara_Stotra.epub
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Bhaktamara_Stotra-epub
+          path: dist/Bhaktamara_Stotra.epub
+          if-no-files-found: error
+
+  release:
+    # Keep a stable download link: https://github.com/<owner>/<repo>/releases/download/latest/Bhaktamara_Stotra.epub
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Bhaktamara_Stotra-epub
+
+      - name: Publish to the "latest" release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          notes="Built automatically from ${GITHUB_SHA::7} on $(date -u +%Y-%m-%d). Download Bhaktamara_Stotra.epub below."
+          if gh release view latest >/dev/null 2>&1; then
+            # Move the rolling "latest" tag to this commit, then replace the file
+            gh api -X PATCH "repos/${GH_REPO}/git/refs/tags/latest" -f sha="$GITHUB_SHA" -F force=true >/dev/null
+            gh release edit latest --title "Latest build" --notes "$notes"
+          else
+            gh release create latest --target "$GITHUB_SHA" --title "Latest build" --notes "$notes"
+          fi
+          gh release upload latest Bhaktamara_Stotra.epub --clobber
