@@ -8,7 +8,8 @@ This version:
   notes on wordplay); the jainworld.com rendering is kept as a commentary.
 - Sanskrit as inline Unicode Devanagari (sanskrit_devanagari.txt), set in an
   embedded Noto Serif Devanagari font, instead of the source site's text images.
-- Illustrations also scaled to 75% (color preserved).
+- Illustrations from images/ (2x, lightly AI-cleaned; see tools/upscale_illustrations.py),
+  falling back to the unmodified jainworld.com original.
 - Transliteration forced italic for ALL shlokas.
 - Tight line spacing; normalized <br />.
 - Shloka 6 (Sanskrit + English) and Shloka 7 (Sanskrit) overrides included.
@@ -17,7 +18,6 @@ This version:
 - EPUB 3 (ebooklib) with NCX so EPUB 2 readers still get a TOC.
 """
 
-import io
 import os
 import re
 import time
@@ -30,7 +30,6 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 from ebooklib import epub
-from PIL import Image
 
 BOOK_TITLE  = "Bhaktamara Stotra"
 BOOK_AUTHOR = "Acharya Manatunga"
@@ -40,6 +39,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DEVANAGARI_FILE = os.path.join(HERE, "sanskrit_devanagari.txt")
 TRANSLATION_FILE = os.path.join(HERE, "translation_english.txt")
 FONT_FILE = os.path.join(HERE, "fonts", "NotoSerifDevanagari-Regular.ttf")
+IMAGES_DIR = os.path.join(HERE, "images")
 
 BASE_URL = "https://jainworld.jainworld.com/bhs/"
 CH_URL   = BASE_URL + "bhs{num:02d}.htm"
@@ -159,27 +159,6 @@ def polite_get(session, url, retries=3, timeout=30):
 def download_image(session, url):
     return polite_get(session, url).content
 
-# ---------- Image scaling (no B/W conversion) ----------
-
-def resize_media_scale(data, media_type, scale=0.75):
-    """Resize any image to a fixed scale (keep color, keep format)."""
-    try:
-        im = Image.open(io.BytesIO(data))
-        w, h = im.size
-        new_w = max(1, int(round(w * scale)))
-        new_h = max(1, int(round(h * scale)))
-        im = im.convert("RGB" if media_type == "image/jpeg" else "P")
-        im = im.resize((new_w, new_h), Image.LANCZOS)
-        buf = io.BytesIO()
-        if media_type == "image/jpeg":
-            im.save(buf, format="JPEG", quality=85, optimize=True)
-        else:
-            # For GIFs, converting to 'P' helps keep file size small
-            im.save(buf, format="GIF", optimize=True)
-        return buf.getvalue()
-    except Exception:
-        return data
-
 # ---------- Extraction ----------
 
 def extract_shloka_content(html_text, page_url, session, shloka_num):
@@ -249,15 +228,18 @@ def extract_shloka_content(html_text, page_url, session, shloka_num):
     if not ill_tag:
         ill_tag = scope.find('img', src=re.compile(r"\.(?:jpg|jpeg|gif)$", re.I))
     illustration = None
-    if ill_tag and ill_tag.get('src'):
+    local = os.path.join(IMAGES_DIR, f"illustration_{shloka_num:02d}.jpg")
+    if os.path.exists(local):
+        with open(local, "rb") as f:
+            illustration = (os.path.basename(local), f.read(), "image/jpeg")
+    elif ill_tag and ill_tag.get('src'):
         ill_url = urljoin(page_url, ill_tag['src'])
         try:
-            data = download_image(session, ill_url)
+            data = download_image(session, ill_url)  # embedded unmodified
             if re.search(r"\.(jpe?g)$", ill_url, re.I):
                 mt, ext = "image/jpeg", ".jpg"
             else:
                 mt, ext = "image/gif", ".gif"
-            data = resize_media_scale(data, mt, scale=0.75)  # 75% color
             illustration = (f"illustration_{shloka_num:02d}{ext}", data, mt)
         except Exception:
             illustration = None
@@ -512,7 +494,7 @@ def main():
     print("\n==========================================")
     print(f"✓ EPUB created: {OUTPUT_FILE}")
     print(f"✓ Chapters: {len(chapters)} (+ title & contents)")
-    print(f"✓ Illustrations embedded (color @ 75%): {images_added}")
+    print(f"✓ Illustrations embedded: {images_added}")
     print("✓ Sanskrit: inline Devanagari (embedded Noto Serif Devanagari)")
     print("✓ Shloka 6: Sanskrit + English overrides applied")
     print("✓ Shloka 7: Sanskrit override applied")
